@@ -23,9 +23,9 @@ export const products = [
   },
   {
     id: 4,
-    name: 'Fluted Pillar Candle - 30 cm',
+    name: 'Fluted Pillar Set 12 & 26cm',
     description:
-      'Our largest fluted candle stands at an impressive 30 cm tall, creating a stunning visual impact. The sage green color brings a touch of nature indoors, while the ribbed texture creates beautiful light patterns when lit.',
+      'Our large fluted candle stands at an impressive 26 cm tall, creating a stunning visual impact. The sage green color brings a touch of nature indoors, while the ribbed texture creates beautiful light patterns when lit.',
     price: 280.0,
     images: ['/green-candles.jpeg'],
     details: [
