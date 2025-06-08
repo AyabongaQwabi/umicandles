@@ -5,11 +5,7 @@ export const products = [
     description:
       'Our 12 cm Fluted Pillar Candle features an elegant ribbed design that creates beautiful light patterns when lit. Each candle is hand-poured using premium wax for a clean, long-lasting burn. The soft pink color adds a touch of warmth and sophistication to any space.',
     price: 150.0,
-    images: [
-      '/pink-fluted-candle.jpeg',
-      '/small-pink-candles.jpeg',
-      '/candle-with-vase.jpeg',
-    ],
+    images: ['/pink-fluted-candle.jpeg'],
     details: [
       'Hand-poured premium wax',
       '30-hour burn time',
@@ -31,11 +27,7 @@ export const products = [
     description:
       'Our largest fluted candle stands at an impressive 30 cm tall, creating a stunning visual impact. The sage green color brings a touch of nature indoors, while the ribbed texture creates beautiful light patterns when lit.',
     price: 280.0,
-    images: [
-      '/green-candles.jpeg',
-      '/purple-candle-set.jpeg',
-      '/pink-fluted-candle.jpeg',
-    ],
+    images: ['/green-candles.jpeg'],
     details: [
       'Hand-poured premium wax',
       '80-hour burn time',
@@ -57,11 +49,7 @@ export const products = [
     description:
       'Our Premium 6 cm Fluted Candle is crafted with a luxury wax blend for an even longer, cleaner burn. The lavender color and elegant ribbed design make it perfect for creating a calming atmosphere.',
     price: 160.0,
-    images: [
-      '/lavender-candle.jpeg',
-      '/small-pink-candles.jpeg',
-      '/candle-with-vase.jpeg',
-    ],
+    images: ['/lavender-candle.jpeg'],
     details: [
       'Hand-poured luxury wax blend',
       '20-hour burn time',
@@ -79,15 +67,11 @@ export const products = [
   },
   {
     id: 6,
-    name: 'Pumpkin Shaped Candle',
+    name: 'Pumpkin Shaped Candle 6cm',
     description:
       'Add a seasonal touch to your home with our Pumpkin Shaped Candle. This unique design brings warmth and charm to autumn decor, with the same premium quality you expect from Umi Candles.',
     price: 80.0,
-    images: [
-      '/pumpkin-candle.jpeg',
-      '/green-candles.jpeg',
-      '/pink-fluted-candle.jpeg',
-    ],
+    images: ['/pumpkin-candle.jpeg'],
     details: [
       'Hand-poured premium wax',
       '25-hour burn time',
@@ -105,9 +89,9 @@ export const products = [
   },
   {
     id: 7,
-    name: 'Combo Set - 12 cm & 26 cm',
+    name: 'Combo Set - 12 cm',
     description:
-      'Our most popular combination, this set pairs a 12 cm and 26 cm fluted candle for a beautiful coordinated look. Perfect for creating visual interest on mantels, dining tables, or as a thoughtful gift.',
+      'Our most popular combination, this set pairs two 12 cm fluted candle for a beautiful coordinated look. Perfect for creating visual interest on mantels, dining tables, or as a thoughtful gift.',
     price: 160.0,
     images: [
       '/candle-with-vase.jpeg',
