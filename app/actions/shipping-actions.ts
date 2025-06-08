@@ -1,65 +1,94 @@
-"use server"
+'use server';
 
-import { shiplogicService, type ShiplogicRateRequestV2, type ShiplogicShipmentRequestV2 } from "@/lib/shiplogic-service"
-import { supabase } from "@/lib/supabase"
-import { products } from "@/config/index"
+import {
+  shiplogicService,
+  type ShiplogicRateRequestV2,
+  type ShiplogicShipmentRequestV2,
+} from '@/lib/shiplogic-service';
+import { supabase } from '@/lib/supabase';
+import { products } from '@/config/index';
 
 export async function getShippingRates(formData: FormData) {
   try {
-    console.log("Getting shipping rates...")
+    console.log('=== Starting shipping rate calculation ===');
+
+    // Check if API key is available
+    const apiKey = process.env.SHIPLOGIC_API_KEY;
+    if (!apiKey) {
+      console.error('SHIPLOGIC_API_KEY environment variable is not set');
+      return {
+        success: false,
+        error: 'Shipping service is not configured. Please contact support.',
+      };
+    }
 
     // Extract address data from form
-    const address = formData.get("address") as string
-    const city = formData.get("city") as string
-    const postalCode = formData.get("postalCode") as string
-    const country = (formData.get("country") as string) || "South Africa"
+    const address = formData.get('address') as string;
+    const city = formData.get('city') as string;
+    const postalCode = formData.get('postalCode') as string;
+    const country = (formData.get('country') as string) || 'South Africa';
 
-    // Get cart items from form data or session
-    const cartItemsJson = formData.get("cartItems") as string
-    let cartItems = []
+    console.log('Form data received:', { address, city, postalCode, country });
+
+    // Validate required fields
+    if (!address || !city || !postalCode) {
+      return {
+        success: false,
+        error: 'Please fill in all required address fields.',
+      };
+    }
+
+    // Get cart items from form data
+    const cartItemsJson = formData.get('cartItems') as string;
+    let cartItems = [];
 
     try {
-      cartItems = cartItemsJson ? JSON.parse(cartItemsJson) : []
+      cartItems = cartItemsJson ? JSON.parse(cartItemsJson) : [];
+      console.log('Cart items parsed:', cartItems.length, 'items');
     } catch (e) {
-      console.error("Error parsing cart items:", e)
+      console.error('Error parsing cart items:', e);
+      return {
+        success: false,
+        error: 'Invalid cart data. Please refresh the page and try again.',
+      };
     }
 
     // Convert country name to ISO code
     const countryCode =
-      country === "South Africa"
-        ? "ZA"
-        : country === "Namibia"
-          ? "NA"
-          : country === "Botswana"
-            ? "BW"
-            : country === "Zimbabwe"
-              ? "ZW"
-              : "ZA"
+      country === 'South Africa'
+        ? 'ZA'
+        : country === 'Namibia'
+        ? 'NA'
+        : country === 'Botswana'
+        ? 'BW'
+        : country === 'Zimbabwe'
+        ? 'ZW'
+        : 'ZA';
 
-    console.log("Address data:", { address, city, postalCode, country, countryCode })
+    console.log('Country mapping:', { country, countryCode });
 
     // Calculate parcel dimensions and weight based on cart items
-    const parcelDimensions = calculateParcelDimensions(cartItems)
-    console.log("Calculated parcel dimensions:", parcelDimensions)
+    const parcelDimensions = calculateParcelDimensions(cartItems);
+    console.log('Calculated parcel dimensions:', parcelDimensions);
 
     // Create a basic rate request using v2 format
     const rateRequest: ShiplogicRateRequestV2 = {
       collection_address: {
-        type: "business",
-        company: "Umi Candles",
-        street_address: "123 Main Street", // Your warehouse address
-        local_area: "Sandton",
-        city: "Johannesburg",
-        zone: "Gauteng",
-        country: "ZA",
-        code: "2196",
+        type: 'business',
+        company: 'Umi Candles',
+        street_address: '123 Main Street', // Your warehouse address
+        local_area: 'Sandton',
+        city: 'Johannesburg',
+        zone: 'Gauteng',
+        country: 'ZA',
+        code: '2196',
       },
       delivery_address: {
-        type: "residential",
+        type: 'residential',
         street_address: address,
-        local_area: "",
+        local_area: '',
         city: city,
-        zone: "", // Province/state
+        zone: '', // Province/state
         country: countryCode,
         code: postalCode,
       },
@@ -72,23 +101,24 @@ export async function getShippingRates(formData: FormData) {
         },
       ],
       declared_value: calculateTotalValue(cartItems), // Calculate value based on cart items
-    }
+    };
 
-    console.log("Rate request:", JSON.stringify(rateRequest, null, 2))
+    console.log('Rate request prepared:', JSON.stringify(rateRequest, null, 2));
 
     try {
+      console.log('Calling Shiplogic API...');
       // Get rates from Shiplogic v2 API
-      const response = await shiplogicService.getRates(rateRequest)
-      console.log("Received rates response:", response)
+      const response = await shiplogicService.getRates(rateRequest);
+      console.log('Shiplogic API response received:', response);
 
-      if (response && response.rates) {
+      if (response && response.rates && response.rates.length > 0) {
         // Transform the response to match our component's expected format
         const transformedRates = response.rates.map((rate) => ({
           id: `${rate.service_level.id}`,
           courier: {
             id: rate.service_level.code,
             name: rate.service_level.name,
-            logo_url: "", // Shiplogic v2 doesn't provide logo URLs
+            logo_url: '', // Shiplogic v2 doesn't provide logo URLs
           },
           service_level: {
             id: `${rate.service_level.id}`,
@@ -100,81 +130,127 @@ export async function getShippingRates(formData: FormData) {
           delivery_max_date: rate.service_level.delivery_date_to,
           total: {
             amount: rate.rate,
-            currency: "ZAR",
+            currency: 'ZAR',
           },
           valid_until: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
-        }))
+        }));
 
-        return { success: true, rates: transformedRates }
+        console.log('Transformed rates:', transformedRates);
+        return { success: true, rates: transformedRates };
       } else {
-        console.log("No rates returned in response:", response)
+        console.log('No rates returned in response:', response);
         return {
           success: false,
-          error: "No shipping rates available for this address. Please try a different address or contact support.",
-        }
+          error:
+            'No shipping rates available for this address. Please verify your address details.',
+        };
       }
     } catch (apiError) {
-      console.error("API error getting shipping rates:", apiError)
+      console.error('Shiplogic API error:', apiError);
 
-      // Return a user-friendly error message
+      // Provide more specific error messages based on the error
+      let errorMessage =
+        "We're having trouble calculating shipping rates at the moment.";
+
+      if (apiError instanceof Error) {
+        if (
+          apiError.message.includes('401') ||
+          apiError.message.includes('Unauthorized')
+        ) {
+          errorMessage =
+            'Shipping service authentication failed. Please contact support.';
+        } else if (
+          apiError.message.includes('400') ||
+          apiError.message.includes('Bad Request')
+        ) {
+          errorMessage =
+            'Invalid address information. Please check your address details and try again.';
+        } else if (apiError.message.includes('404')) {
+          errorMessage = 'Shipping service not found. Please contact support.';
+        } else if (apiError.message.includes('500')) {
+          errorMessage =
+            'Shipping service is temporarily unavailable. Please try again later.';
+        }
+      }
+
       return {
         success: false,
-        error:
-          "We're having trouble calculating shipping rates at the moment. Please try again later or contact support.",
-      }
+        error: errorMessage,
+        debug:
+          process.env.NODE_ENV === 'development' ? apiError.message : undefined,
+      };
     }
   } catch (error) {
-    console.error("Error getting shipping rates:", error)
+    console.error('General error in getShippingRates:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Unknown error occurred",
-    }
+      error: 'An unexpected error occurred. Please try again.',
+      debug:
+        process.env.NODE_ENV === 'development'
+          ? error instanceof Error
+            ? error.message
+            : 'Unknown error'
+          : undefined,
+    };
   }
 }
 
-export async function createShipment(orderId: string, serviceLevelCode: string) {
+export async function createShipment(
+  orderId: string,
+  serviceLevelCode: string
+) {
   try {
+    console.log(
+      `Creating shipment for order ${orderId} with service level ${serviceLevelCode}`
+    );
+
     // Fetch the order from the database
-    const { data: order, error } = await supabase.from("orders").select("*, order_items(*)").eq("id", orderId).single()
+    const { data: order, error } = await supabase
+      .from('orders')
+      .select('*, order_items(*)')
+      .eq('id', orderId)
+      .single();
 
     if (error || !order) {
-      throw new Error(`Order not found: ${error?.message || "Unknown error"}`)
+      throw new Error(`Order not found: ${error?.message || 'Unknown error'}`);
     }
 
     // Calculate parcel dimensions and weight based on order items
-    const parcelDimensions = calculateParcelDimensionsFromOrder(order.order_items)
-    console.log("Calculated parcel dimensions for order:", parcelDimensions)
+    const parcelDimensions = calculateParcelDimensionsFromOrder(
+      order.order_items
+    );
+    console.log('Calculated parcel dimensions for order:', parcelDimensions);
 
     // Create a shipment request
     const shipmentRequest: ShiplogicShipmentRequestV2 = {
       collection_address: {
-        type: "business",
-        company: "Umi Candles",
-        street_address: "123 Main Street", // Your warehouse address
-        local_area: "Sandton",
-        city: "Johannesburg",
-        zone: "Gauteng",
-        country: "ZA",
-        code: "2196",
+        type: 'business',
+        company: 'Umi Candles',
+        street_address: '123 Main Street', // Your warehouse address
+        local_area: 'Sandton',
+        city: 'Johannesburg',
+        zone: 'Gauteng',
+        country: 'ZA',
+        code: '2196',
       },
       collection_contact: {
-        name: "Umi Candles",
-        email: "orders@umicandles.com", // Your business email
-        mobile_number: "0123456789", // Your business phone
+        name: 'Umi Candles',
+        email: 'orders@umicandles.com', // Your business email
+        mobile_number: '0123456789', // Your business phone
       },
       delivery_address: {
-        type: "residential",
+        type: 'residential',
         street_address: order.shipping_address,
-        local_area: order.shipping_suburb || "",
+        local_area: '',
         city: order.shipping_city,
-        zone: order.shipping_province || "",
-        country: "ZA", // Default to South Africa
+        zone: '',
+        country: 'ZA', // Default to South Africa
         code: order.shipping_postal_code,
       },
       delivery_contact: {
         name: order.customer_name,
         email: order.customer_email,
-        mobile_number: order.customer_phone || "",
+        mobile_number: order.customer_phone || '',
       },
       parcels: [
         {
@@ -186,30 +262,33 @@ export async function createShipment(orderId: string, serviceLevelCode: string) 
         },
       ],
       service_level_code: serviceLevelCode,
-      declared_value: order.total_amount,
+      declared_value: order.total,
       customer_reference: `Order #${order.order_number}`,
-      special_instructions_delivery: order.shipping_notes || "",
-    }
+      special_instructions_delivery: order.shipping_notes || '',
+    };
 
-    console.log("Creating shipment:", JSON.stringify(shipmentRequest, null, 2))
+    console.log(
+      'Creating shipment with request:',
+      JSON.stringify(shipmentRequest, null, 2)
+    );
 
     // Create the shipment
-    const shipment = await shiplogicService.createShipment(shipmentRequest)
-    console.log("Shipment created:", shipment)
+    const shipment = await shiplogicService.createShipment(shipmentRequest);
+    console.log('Shipment created:', shipment);
 
     // Update the order with tracking information
     const { error: updateError } = await supabase
-      .from("orders")
+      .from('orders')
       .update({
         tracking_number: shipment.short_tracking_reference,
-        shipping_provider: "Shiplogic",
+        shipping_provider: 'Shiplogic',
         shipping_status: shipment.status,
         estimated_delivery_date: shipment.estimated_delivery_to,
       })
-      .eq("id", orderId)
+      .eq('id', orderId);
 
     if (updateError) {
-      console.error("Error updating order with tracking info:", updateError)
+      console.error('Error updating order with tracking info:', updateError);
     }
 
     return {
@@ -222,13 +301,13 @@ export async function createShipment(orderId: string, serviceLevelCode: string) 
         from: shipment.estimated_delivery_from,
         to: shipment.estimated_delivery_to,
       },
-    }
+    };
   } catch (error) {
-    console.error("Error creating shipment:", error)
+    console.error('Error creating shipment:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Unknown error occurred",
-    }
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+    };
   }
 }
 
@@ -241,52 +320,52 @@ function calculateParcelDimensions(cartItems: any[]) {
       width: 20,
       height: 15,
       weight: 1,
-    }
+    };
   }
 
-  let totalVolume = 0
-  let totalWeight = 0
-  let maxLength = 0
-  let maxWidth = 0
-  let maxHeight = 0
+  let totalVolume = 0;
+  let totalWeight = 0;
+  let maxLength = 0;
+  let maxWidth = 0;
+  let maxHeight = 0;
 
   // Process each cart item
   cartItems.forEach((item) => {
     // Find the product in the config
-    const product = products.find((p) => p.id === item.id)
+    const product = products.find((p) => p.id === item.id);
 
     if (product) {
       // Use product dimensions from config
-      const length = product.boxLengthInCm || 15
-      const width = product.boxWidthInCm || 10
-      const height = product.boxHeightInCm || 5
-      const weight = (product.boxWeightInGrams || 500) / 1000 // Convert grams to kg
+      const length = product.boxLengthInCm || 15;
+      const width = product.boxWidthInCm || 10;
+      const height = product.boxHeightInCm || 5;
+      const weight = (product.boxWeightInGrams || 500) / 1000; // Convert grams to kg
 
       // Update max dimensions
-      maxLength = Math.max(maxLength, length)
-      maxWidth = Math.max(maxWidth, width)
-      maxHeight = Math.max(maxHeight, height)
+      maxLength = Math.max(maxLength, length);
+      maxWidth = Math.max(maxWidth, width);
+      maxHeight = Math.max(maxHeight, height);
 
       // Add to total volume and weight
-      totalVolume += length * width * height * item.quantity
-      totalWeight += weight * item.quantity
+      totalVolume += length * width * height * item.quantity;
+      totalWeight += weight * item.quantity;
     } else {
       // Use default values if product not found
-      totalVolume += 15 * 10 * 5 * item.quantity
-      totalWeight += 0.5 * item.quantity
+      totalVolume += 15 * 10 * 5 * item.quantity;
+      totalWeight += 0.5 * item.quantity;
     }
-  })
+  });
 
   // Calculate dimensions for a single box that could contain all items
   // This is a simple approximation - for more complex packing, you might need a more sophisticated algorithm
-  const cubeRoot = Math.cbrt(totalVolume)
+  const cubeRoot = Math.cbrt(totalVolume);
 
   return {
     length: Math.max(maxLength, Math.ceil(cubeRoot)),
     width: Math.max(maxWidth, Math.ceil(cubeRoot * 0.8)),
     height: Math.max(maxHeight, Math.ceil(cubeRoot * 0.6)),
     weight: Math.max(0.5, totalWeight), // Ensure minimum weight of 0.5kg
-  }
+  };
 }
 
 // Helper function to calculate parcel dimensions based on order items from database
@@ -298,60 +377,60 @@ function calculateParcelDimensionsFromOrder(orderItems: any[]) {
       width: 20,
       height: 15,
       weight: 1,
-    }
+    };
   }
 
-  let totalVolume = 0
-  let totalWeight = 0
-  let maxLength = 0
-  let maxWidth = 0
-  let maxHeight = 0
+  let totalVolume = 0;
+  let totalWeight = 0;
+  let maxLength = 0;
+  let maxWidth = 0;
+  let maxHeight = 0;
 
   // Process each order item
   orderItems.forEach((item) => {
     // Find the product in the config
-    const product = products.find((p) => p.id === item.product_id)
+    const product = products.find((p) => p.id === item.product_id);
 
     if (product) {
       // Use product dimensions from config
-      const length = product.boxLengthInCm || 15
-      const width = product.boxWidthInCm || 10
-      const height = product.boxHeightInCm || 5
-      const weight = (product.boxWeightInGrams || 500) / 1000 // Convert grams to kg
+      const length = product.boxLengthInCm || 15;
+      const width = product.boxWidthInCm || 10;
+      const height = product.boxHeightInCm || 5;
+      const weight = (product.boxWeightInGrams || 500) / 1000; // Convert grams to kg
 
       // Update max dimensions
-      maxLength = Math.max(maxLength, length)
-      maxWidth = Math.max(maxWidth, width)
-      maxHeight = Math.max(maxHeight, height)
+      maxLength = Math.max(maxLength, length);
+      maxWidth = Math.max(maxWidth, width);
+      maxHeight = Math.max(maxHeight, height);
 
       // Add to total volume and weight
-      totalVolume += length * width * height * item.quantity
-      totalWeight += weight * item.quantity
+      totalVolume += length * width * height * item.quantity;
+      totalWeight += weight * item.quantity;
     } else {
       // Use default values if product not found
-      totalVolume += 15 * 10 * 5 * item.quantity
-      totalWeight += 0.5 * item.quantity
+      totalVolume += 15 * 10 * 5 * item.quantity;
+      totalWeight += 0.5 * item.quantity;
     }
-  })
+  });
 
   // Calculate dimensions for a single box that could contain all items
-  const cubeRoot = Math.cbrt(totalVolume)
+  const cubeRoot = Math.cbrt(totalVolume);
 
   return {
     length: Math.max(maxLength, Math.ceil(cubeRoot)),
     width: Math.max(maxWidth, Math.ceil(cubeRoot * 0.8)),
     height: Math.max(maxHeight, Math.ceil(cubeRoot * 0.6)),
     weight: Math.max(0.5, totalWeight), // Ensure minimum weight of 0.5kg
-  }
+  };
 }
 
 // Helper function to calculate total value of cart items
 function calculateTotalValue(cartItems: any[]) {
-  if (!cartItems || !cartItems.length) return 500 // Default value
+  if (!cartItems || !cartItems.length) return 500; // Default value
 
   return cartItems.reduce((total, item) => {
-    const product = products.find((p) => p.id === item.id)
-    const price = product ? product.price : 0
-    return total + price * item.quantity
-  }, 0)
+    const product = products.find((p) => p.id === item.id);
+    const price = product ? product.price : 0;
+    return total + price * item.quantity;
+  }, 0);
 }

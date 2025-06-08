@@ -1,7 +1,7 @@
 export const products = [
   {
     id: 1,
-    name: 'Fluted Pillar Candle - 12 cm',
+    name: 'Fluted Pillar Candle - 26 cm',
     description:
       'Our 12 cm Fluted Pillar Candle features an elegant ribbed design that creates beautiful light patterns when lit. Each candle is hand-poured using premium wax for a clean, long-lasting burn. The soft pink color adds a touch of warmth and sophistication to any space.',
     price: 150.0,
@@ -27,7 +27,7 @@ export const products = [
   },
   // {
   //   id: 2,
-  //   name: 'Fluted Pillar Candle - 6 cm',
+  //   name: 'Fluted Pillar Candle - 26 cm',
   //   description:
   //     'The 6 cm Fluted Pillar Candle is perfect for creating intimate lighting arrangements or as part of a larger candle display. Despite its smaller size, it features the same elegant ribbed design and premium quality as our larger candles.',
   //   price: 100.0,
@@ -79,10 +79,10 @@ export const products = [
   // },
   {
     id: 4,
-    name: 'Fluted Pillar Candle - 30 cm',
+    name: 'Ribbed pillar candles, 12 cm and 26',
     description:
       'Our largest fluted candle stands at an impressive 30 cm tall, creating a stunning visual impact. The sage green color brings a touch of nature indoors, while the ribbed texture creates beautiful light patterns when lit.',
-    price: 280.0,
+    price: 180.0,
     images: [
       '/green-candles.jpeg',
       '/purple-candle-set.jpeg',
@@ -105,7 +105,7 @@ export const products = [
   },
   {
     id: 5,
-    name: 'Premium Fluted Candle - 6 cm',
+    name: 'Premium Fluted Candle - 26 cm',
     description:
       'Our Premium 6 cm Fluted Candle is crafted with a luxury wax blend for an even longer, cleaner burn. The lavender color and elegant ribbed design make it perfect for creating a calming atmosphere.',
     price: 160.0,
@@ -131,7 +131,7 @@ export const products = [
   },
   {
     id: 6,
-    name: 'Pumpkin Shaped Candle',
+    name: 'Pumpkin Shaped Candle 6cm',
     description:
       'Add a seasonal touch to your home with our Pumpkin Shaped Candle. This unique design brings warmth and charm to autumn decor, with the same premium quality you expect from Umi Candles.',
     price: 80.0,
@@ -145,19 +145,19 @@ export const products = [
       '25-hour burn time',
       'Cotton wick',
       'Unique pumpkin design',
-      '8 cm height',
+      '6 cm height',
     ],
     scent: 'Unscented',
-    size: '8 cm',
+    size: '6 cm',
     category: 'new',
     related: [1, 4, 7],
     boxWidthInCm: 14,
-    boxHeightInCm: 5,
+    boxHeightInCm: 6,
     boxWeightInGrams: 295,
   },
   {
     id: 7,
-    name: 'Combo Set - 12 cm & 26 cm',
+    name: 'Combo Set - 12 cm',
     description:
       'Our most popular combination, this set pairs a 12 cm and 26 cm fluted candle for a beautiful coordinated look. Perfect for creating visual interest on mantels, dining tables, or as a thoughtful gift.',
     price: 160.0,
