@@ -279,7 +279,7 @@ export const products = [
     description:
       'Express your feelings with our unique "I Love You" candle. This artistic sculptural candle features the romantic message beautifully molded into the wax, creating a meaningful gift that speaks from the heart. Perfect for anniversaries, Valentine\'s Day, or any moment when you want to show someone special how much you care.',
     price: 120.0,
-    images: ['/i-love-you-candle.jpeg'],
+    images: ['/iloveyoucandles2.jpeg'],
     details: [
       'Hand-poured premium wax',
       'Artistic sculptural design',
