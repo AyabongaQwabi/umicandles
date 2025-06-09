@@ -1,11 +1,11 @@
 export const products = [
   {
     id: 1,
-    name: 'Fluted Pillar Candle - 12 cm',
+    name: 'Ribbed Pillar Candle - 12 cm',
     description:
       'Our 12 cm Fluted Pillar Candle features an elegant ribbed design that creates beautiful light patterns when lit. Each candle is hand-poured using premium wax for a clean, long-lasting burn. The soft pink color adds a touch of warmth and sophistication to any space.',
     price: 150.0,
-    images: ['/pink-fluted-candle.jpeg'],
+    images: ['/12cm-ribbed.jpeg'],
     details: [
       'Hand-poured premium wax',
       '30-hour burn time',
@@ -23,15 +23,11 @@ export const products = [
   },
   {
     id: 2,
-    name: 'Fluted Pillar Candle - 6 cm',
+    name: 'Princess Pillar Candle - 6 cm',
     description:
       'The 6 cm Fluted Pillar Candle is perfect for creating intimate lighting arrangements or as part of a larger candle display. Despite its smaller size, it features the same elegant ribbed design and premium quality as our larger candles.',
     price: 100.0,
-    images: [
-      '/small-pink-candles.jpeg',
-      '/pink-fluted-candle.jpeg',
-      '/lavender-candle.jpeg',
-    ],
+    images: ['/6cm-princess.jpeg'],
     details: [
       'Hand-poured premium wax',
       '15-hour burn time',
@@ -53,11 +49,7 @@ export const products = [
     description:
       'Make a statement with our 26 cm Fluted Pillar Candle. This larger size creates a dramatic focal point for special occasions or as a centerpiece. The beautiful purple hue and ribbed texture add sophistication to any setting.',
     price: 220.0,
-    images: [
-      '/purple-candle-set.jpeg',
-      '/candle-with-vase.jpeg',
-      '/pink-fluted-candle.jpeg',
-    ],
+    images: ['/pink-fluted-candle.jpeg'],
     details: [
       'Hand-poured premium wax',
       '60-hour burn time',
