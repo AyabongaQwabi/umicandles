@@ -207,18 +207,16 @@ export async function createShipment(
     // Fetch the order from the database
     const { data: order, error } = await supabase
       .from('orders')
-      .select('*, order_items(*)')
+      .select('*')
       .eq('id', orderId)
       .single();
-
+    console.log('Fetched order:', order);
     if (error || !order) {
       throw new Error(`Order not found: ${error?.message || 'Unknown error'}`);
     }
 
     // Calculate parcel dimensions and weight based on order items
-    const parcelDimensions = calculateParcelDimensionsFromOrder(
-      order.order_items
-    );
+    const parcelDimensions = calculateParcelDimensionsFromOrder(order.items);
     console.log('Calculated parcel dimensions for order:', parcelDimensions);
 
     // Create a shipment request
@@ -389,11 +387,11 @@ function calculateParcelDimensionsFromOrder(orderItems: any[]) {
   // Process each order item
   orderItems.forEach((item) => {
     // Find the product in the config
-    const product = products.find((p) => p.id === item.product_id);
+    const product = products.find((p) => p.id === item.id);
 
     if (product) {
       // Use product dimensions from config
-      const length = product.boxLengthInCm || 15;
+      const length = product?.boxLengthInCm || 15;
       const width = product.boxWidthInCm || 10;
       const height = product.boxHeightInCm || 5;
       const weight = (product.boxWeightInGrams || 500) / 1000; // Convert grams to kg

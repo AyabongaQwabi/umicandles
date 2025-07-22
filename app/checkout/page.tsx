@@ -296,6 +296,7 @@ export default function CheckoutPage() {
               const selectedRateData = shippingRates.find(
                 (rate) => rate.id === selectedRate
               );
+              console.log('Creating shipment for rate:', selectedRateData);
               if (selectedRateData?.service_level?.code) {
                 const shipmentResult = await createShipment(
                   data.id,
@@ -318,7 +319,7 @@ export default function CheckoutPage() {
 
       // Redirect to success page if shouldRedirect is true
       if (result.shouldRedirect) {
-        window.location.href = `/checkout/success?order=${orderNum}`;
+        //window.location.href = `/checkout/success?order=${orderNum}`;
       }
     } else if (result.status === 'error') {
       setPaymentStatus('error');
@@ -326,9 +327,9 @@ export default function CheckoutPage() {
 
       // Redirect to failed page if shouldRedirect is true
       if (result.shouldRedirect) {
-        window.location.href = `/checkout/failed?message=${encodeURIComponent(
-          result.message || 'Payment failed'
-        )}`;
+        // window.location.href = `/checkout/failed?message=${encodeURIComponent(
+        //  result.message || 'Payment failed'
+        // )}`;
       }
     } else {
       // Payment was cancelled
